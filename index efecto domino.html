@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Efecto dominó: redes tróficas de México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --anil:#22307b; --anil-2:#18225c; --papel:#fff8ea; --tinta:#1c1a17;
+  --rosa:#d1006c; --cempa:#f2a900; --verde:#2f8f4e; --naranja:#e4661a; --rojo:#c3241c;
+  --P:#2f8f4e; --C1:#c98a00; --C2:#e4661a; --S:#c3241c;
+  --display:'Alfa Slab One', Rockwell, 'Roboto Slab', Georgia, serif;
+  --texto:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--anil);color:var(--papel);font-family:var(--texto);font-size:16px;line-height:1.45;min-height:100vh;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.picado{height:30px;background:
+  conic-gradient(from -45deg at 50% 100%, var(--rosa) 90deg, transparent 0) 0 0/36px 100%,
+  linear-gradient(var(--cempa),var(--cempa)) 0 0/100% 6px no-repeat}
+main{max-width:1280px;margin:0 auto;padding:16px 14px 40px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0 0 .35em;line-height:1.1}
+h1{font-size:clamp(2rem,6vw,3.4rem)}
+h2{font-size:1.35rem} h3{font-size:1.1rem}
+p{margin:0 0 .7em;max-width:68ch}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--cempa);outline-offset:3px}
+.cabeza{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 24px;margin-bottom:12px}
+.cabeza p{margin:0;opacity:.9}
+.ecos{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
+.ecos button{flex:0 0 auto;border:2px solid var(--papel);background:transparent;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;white-space:nowrap}
+.ecos button[aria-pressed=true]{background:var(--cempa);color:var(--tinta);border-color:var(--tinta)}
+.btn{font-family:var(--display);font-size:1rem;background:var(--cempa);color:var(--tinta);border:3px solid var(--tinta);
+  border-radius:6px;padding:.55em 1em;box-shadow:4px 4px 0 var(--tinta);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--tinta)}
+.btn.sec{background:var(--papel)} .btn.rosa{background:var(--rosa);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.chico{font-size:.88rem;padding:.4em .8em;box-shadow:3px 3px 0 var(--tinta)}
+.hoja{background:var(--papel);color:var(--tinta);border:3px solid var(--tinta);border-radius:8px;padding:14px}
+.layout{display:grid;gap:14px}
+@media(min-width:1000px){.layout{grid-template-columns:1fr 380px;align-items:start}}
+.lienzo{padding:6px;min-width:0}
+.scroll-red{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.desliza{display:none;font-size:.85rem;color:var(--tinta);opacity:.7;padding:0 6px}
+@media(max-width:780px){.desliza{display:block}}
+#red{display:block;width:100%;min-width:740px;height:auto}
+.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:6px 6px 2px}
+.anio{font-family:var(--display);font-size:1.1rem}
+.leyenda{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.85rem;color:var(--tinta)}
+.leyenda span{display:inline-flex;align-items:center;gap:6px}
+.panel{display:flex;flex-direction:column;gap:14px}
+.ficha-cab{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ficha-cab .emo{font-size:2.4rem;line-height:1}
+.etq{display:inline-block;color:#fff;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700}
+.lista-rel{font-size:.92rem;margin:4px 0}
+.lista-rel b{display:inline-block;min-width:92px}
+.cand{border:2px solid var(--tinta);border-radius:6px;padding:10px;background:#fff;margin-top:8px}
+.cand .top{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.cand .nom{font-weight:700}
+.cand p{font-size:.88rem;margin:6px 0 8px}
+.tipo{font-size:.75rem;font-weight:700;border:1.5px solid var(--tinta);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.muted{opacity:.72;font-size:.9rem}
+.pred{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed rgba(0,0,0,.2)}
+.pred .quien{display:flex;align-items:center;gap:6px;font-weight:700;font-size:.92rem}
+.trio{display:inline-flex;border:2px solid var(--tinta);border-radius:6px;overflow:hidden;flex:0 0 auto}
+.trio button{border:0;background:#fff;padding:4px 9px;cursor:pointer;font-weight:700;color:var(--tinta)}
+.trio button+button{border-left:2px solid var(--tinta)}
+.trio button[aria-pressed=true]{background:var(--tinta);color:var(--papel)}
+.res-grupo{margin-top:10px}
+.res-grupo h4{margin:0 0 4px;font-size:.95rem}
+.res{font-size:.92rem;padding:5px 0 5px 10px;border-left:5px solid #ccc;margin-bottom:5px;background:#fff;border-radius:0 4px 4px 0}
+.res.sube{border-left-color:var(--verde)} .res.baja{border-left-color:var(--naranja)} .res.ext{border-left-color:var(--rojo)}
+.res .cifra{font-weight:700}
+.cadena{font-size:.82rem;margin-top:4px;color:#555}
+.cadena span{white-space:nowrap}
+.clave{margin-top:5px;font-size:.88rem;background:#fff4d6;border-radius:4px;padding:5px 8px}
+.explica{background:#fff;border:2px solid var(--tinta);border-radius:6px;padding:9px 11px;font-size:.92rem;margin:8px 0}
+.marca{font-weight:700;margin-left:4px}
+.ok{color:var(--verde)} .mal{color:var(--rojo)}
+.acciones{display:flex;flex-wrap:wrap;gap:8px}
+.grafica{margin-top:14px}
+#graf{width:100%;height:220px;display:block}
+.grafica-cab{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:center}
+.nodo{cursor:pointer}
+.nodo:focus{outline:none}
+.nodo:focus-visible circle.aro{stroke:var(--cempa);stroke-width:5}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="picado" aria-hidden="true"></div>
+<main>
+  <div class="cabeza">
+    <h1>Efecto dominó</h1>
+    <p>Quita o agrega un ser vivo, simula 30 años y observa cómo cambia toda la red trófica.</p>
+  </div>
+  <nav class="ecos" id="ecos" aria-label="Ecosistemas"></nav>
+
+  <div class="layout">
+    <section class="hoja lienzo" aria-label="Red trófica">
+      <div class="barra">
+        <div><span class="anio" id="anio">Año 0</span> <span class="muted" id="lugar"></span></div>
+        <div class="leyenda">
+          <span><svg width="34" height="10"><line x1="2" y1="5" x2="26" y2="5" stroke="#555" stroke-width="2"/><path d="M26 1 L33 5 L26 9z" fill="#555"/></svg>se lo come (la energía sube)</span>
+          <span><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="#c3241c" stroke-width="2" stroke-dasharray="4 3"/></svg>compite con</span>
+        </div>
+      </div>
+      <p class="desliza">Desliza la red hacia los lados para verla completa →</p>
+      <div class="scroll-red"><svg id="red" viewBox="0 0 1000 660" role="img" aria-label="Diagrama de la red trófica"></svg></div>
+      <div class="grafica">
+        <div class="grafica-cab">
+          <h3 style="margin:0">Población a lo largo del tiempo</h3>
+          <span class="muted" id="graf-nota">100% = población inicial. Toca un ser vivo para resaltarlo.</span>
+        </div>
+        <canvas id="graf" aria-label="Gráfica de poblaciones"></canvas>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="hoja" id="caja-ficha"></div>
+      <div class="hoja" id="caja-flujo"></div>
+      <div class="hoja" id="caja-agregar"></div>
+    </aside>
+  </div>
+</main>
+
+<script>
+// ===== Datos de las 8 redes =====
+const ECOS=[
+{id:'selva',n:'Selva tropical',e:'🌴',lugar:'Selva Lacandona, Chiapas',
+ esp:[
+  {id:'ramon',n:'Ramón',e:'🌳',l:'P'},{id:'ceiba',n:'Ceiba',e:'🌳',l:'P'},{id:'soto',n:'Plantas del sotobosque',e:'🌿',l:'P'},
+  {id:'mono',n:'Mono aullador',e:'🐒',l:'C1',d:['ceiba','ramon']},{id:'tapir',n:'Tapir',e:'🐾',l:'C1',d:['soto','ramon']},
+  {id:'pecari',n:'Pecarí',e:'🐗',l:'C1',d:['soto','ramon']},{id:'tepez',n:'Tepezcuintle',e:'🐾',l:'C1',d:['ramon','soto']},
+  {id:'guaca',n:'Guacamaya roja',e:'🦜',l:'C1',d:['ramon','ceiba']},{id:'morfo',n:'Mariposa morfo',e:'🦋',l:'C1',d:['soto']},
+  {id:'rana',n:'Rana de ojos rojos',e:'🐸',l:'C2',d:['morfo']},{id:'nauyaca',n:'Nauyaca',e:'🐍',l:'C2',d:['tepez','rana']},
+  {id:'ocelote',n:'Ocelote',e:'🐈',l:'C2',d:['tepez','guaca','rana']},
+  {id:'jaguar',n:'Jaguar',e:'🐆',l:'S',d:['tapir','pecari','tepez']},{id:'arpia',n:'Águila arpía',e:'🦅',l:'S',d:['mono','guaca']}],
+ cand:[
+  {id:'ganado',n:'Ganado vacuno',e:'🐄',l:'C1',tipo:'Introducida por humanos',d:['soto'],presion:.6,boost:1.4,presaDe:['jaguar'],
+   desc:'La ganadería es una de las principales causas de pérdida de selva en México. A veces el jaguar caza becerros y entra en conflicto con los ganaderos.'},
+  {id:'perro',n:'Perro feral',e:'🐕',l:'C2',tipo:'Especie invasora',d:['tepez','pecari'],presion:.5,boost:1.3,
+   desc:'Los perros sin dueño cazan fauna silvestre en grupo y transmiten enfermedades a los animales nativos.'}]},
+{id:'arrecife',n:'Arrecife de coral',e:'🪸',lugar:'Caribe mexicano, Quintana Roo',
+ esp:[
+  {id:'fito',n:'Fitoplancton',e:'🦠',l:'P'},{id:'alga',n:'Macroalgas',e:'🍀',l:'P'},{id:'pasto',n:'Pasto marino',e:'🌱',l:'P'},
+  {id:'zoo',n:'Zooplancton',e:'🦐',l:'C1',d:['fito']},{id:'loro',n:'Pez loro',e:'🐠',l:'C1',d:['alga']},
+  {id:'erizo',n:'Erizo de mar',e:'🐾',l:'C1',d:['alga']},{id:'tortuga',n:'Tortuga verde',e:'🐢',l:'C1',d:['pasto']},
+  {id:'coral',n:'Coral',e:'🪸',l:'C2',d:['zoo'],comp:[{id:'alga',c:.8}]},{id:'pargo',n:'Pargo',e:'🐟',l:'C2',d:['zoo']},
+  {id:'langosta',n:'Langosta espinosa',e:'🦞',l:'C2',d:['erizo','zoo']},{id:'pulpo',n:'Pulpo maya',e:'🐙',l:'C2',d:['langosta']},
+  {id:'mero',n:'Mero guasa',e:'🐡',l:'S',d:['pargo','langosta','pulpo']},{id:'tiburon',n:'Tiburón tigre',e:'🦈',l:'S',d:['tortuga','loro','pargo']}],
+ nota:{coral:'El coral atrapa zooplancton con sus tentáculos y además recibe azúcares de las algas que viven dentro de él. Las macroalgas le quitan luz y espacio.'},
+ cand:[
+  {id:'leon',n:'Pez león',e:'🐠',l:'C2',tipo:'Especie invasora',d:['loro','pargo'],presion:.6,boost:1.6,
+   desc:'Llegó al Caribe mexicano alrededor de 2009. Come peces pequeños y juveniles, y en el Atlántico casi no tiene depredadores.'},
+  {id:'pesca',n:'Pesca excesiva',e:'🎣',l:'S',tipo:'Actividad humana',fijo:true,d:['mero','pargo','langosta','loro'],presion:.5,
+   desc:'Los humanos también somos parte de la red. Sacar demasiados peces y langostas cambia todo el arrecife.'}]},
+{id:'bosque',n:'Bosque templado',e:'🌲',lugar:'Bosque de oyamel y encino, Michoacán y Estado de México',
+ esp:[
+  {id:'oyamel',n:'Oyamel',e:'🌲',l:'P'},{id:'encino',n:'Encino',e:'🌳',l:'P'},{id:'pastos',n:'Pastos y hierbas',e:'🌱',l:'P'},
+  {id:'venado',n:'Venado cola blanca',e:'🦌',l:'C1',d:['pastos','encino']},{id:'teporingo',n:'Teporingo',e:'🐇',l:'C1',d:['pastos']},
+  {id:'ardilla',n:'Ardilla gris',e:'🐿️',l:'C1',d:['encino','oyamel']},{id:'monarca',n:'Mariposa monarca',e:'🦋',l:'C1',d:['pastos']},
+  {id:'cascabel',n:'Víbora de cascabel',e:'🐍',l:'C2',d:['teporingo','ardilla']},{id:'gato',n:'Gato montés',e:'🐈',l:'C2',d:['teporingo','ardilla']},
+  {id:'calandria',n:'Calandria',e:'🐦',l:'C2',d:['monarca']},
+  {id:'puma',n:'Puma',e:'🐆',l:'S',d:['venado']},{id:'lobo',n:'Lobo mexicano',e:'🐺',l:'S',d:['venado']},
+  {id:'halcon',n:'Halcón cola roja',e:'🦅',l:'S',d:['ardilla','teporingo','cascabel']}],
+ cand:[
+  {id:'descort',n:'Escarabajo descortezador',e:'🪲',l:'C1',tipo:'Plaga nativa',d:['oyamel'],presion:.8,boost:1.6,
+   desc:'Es nativo, pero con sequías y calor sus poblaciones explotan y pueden matar miles de árboles.'},
+  {id:'borrego',n:'Borrego',e:'🐑',l:'C1',tipo:'Introducida por humanos',d:['pastos','oyamel'],presion:.5,boost:1.3,presaDe:['puma','lobo'],
+   desc:'El pastoreo dentro del bosque impide que crezcan los árbolitos jóvenes.'}]},
+{id:'desierto',n:'Desierto',e:'🌵',lugar:'Desierto de Sonora',
+ esp:[
+  {id:'saguaro',n:'Saguaro',e:'🌵',l:'P'},{id:'biznaga',n:'Biznaga',e:'🌵',l:'P'},{id:'mezquite',n:'Mezquite',e:'🌳',l:'P'},
+  {id:'hierbas',n:'Hierbas y semillas',e:'🌾',l:'P'},
+  {id:'murcielago',n:'Murciélago magueyero',e:'🦇',l:'C1',d:['saguaro']},{id:'berrendo',n:'Berrendo',e:'🦌',l:'C1',d:['hierbas','mezquite']},
+  {id:'rata',n:'Rata canguro',e:'🐭',l:'C1',d:['hierbas']},{id:'chapulin',n:'Chapulín',e:'🦗',l:'C1',d:['hierbas','mezquite']},
+  {id:'tortuga',n:'Tortuga del desierto',e:'🐢',l:'C1',d:['hierbas','biznaga']},
+  {id:'escorpion',n:'Escorpión',e:'🦂',l:'C2',d:['chapulin']},{id:'zorra',n:'Zorra del desierto',e:'🦊',l:'C2',d:['rata','chapulin']},
+  {id:'gila',n:'Monstruo de Gila',e:'🦎',l:'C2',d:['rata']},{id:'correcaminos',n:'Correcaminos',e:'🐦',l:'C2',d:['chapulin','escorpion','rata']},
+  {id:'puma',n:'Puma',e:'🐆',l:'S',d:['berrendo']},{id:'gavilan',n:'Gavilán de Harris',e:'🦅',l:'S',d:['rata','correcaminos']}],
+ nota:{murcielago:'Come néctar y polen de las flores del saguaro y, al hacerlo, las poliniza.'},
+ cand:[
+  {id:'buffel',n:'Pasto buffel',e:'🌾',l:'P',tipo:'Especie invasora',comp:['hierbas','biznaga','saguaro'],c:.45,boost:1.6,presaDe:['chapulin'],
+   desc:'Se trajo de África para alimentar ganado en Sonora. Desplaza a las plantas nativas y provoca incendios que matan saguaros.'},
+  {id:'burro',n:'Burro feral',e:'🫏',l:'C1',tipo:'Especie invasora',d:['hierbas','mezquite'],presion:.45,boost:1.3,presaDe:['puma'],
+   desc:'Burros abandonados que se reproducen libres; compiten por agua y plantas con la fauna nativa.'}]},
+{id:'manglar',n:'Manglar',e:'🌿',lugar:'Marismas Nacionales, Nayarit',
+ esp:[
+  {id:'mangle',n:'Mangle rojo',e:'🌳',l:'P'},{id:'fito',n:'Fitoplancton',e:'🦠',l:'P'},{id:'ulva',n:'Algas verdes',e:'🥬',l:'P'},
+  {id:'cangrejo',n:'Cangrejo violinista',e:'🦀',l:'C1',d:['mangle']},{id:'ostion',n:'Ostión de mangle',e:'🦪',l:'C1',d:['fito']},
+  {id:'lisa',n:'Lisa',e:'🐟',l:'C1',d:['ulva','fito']},{id:'camaron',n:'Camarón',e:'🦐',l:'C1',d:['fito','ulva']},
+  {id:'manati',n:'Manatí',e:'🐾',l:'C1',d:['ulva','mangle']},
+  {id:'robalo',n:'Robalo',e:'🐟',l:'C2',d:['lisa','camaron']},{id:'garza',n:'Garza blanca',e:'🪶',l:'C2',d:['lisa','camaron','cangrejo']},
+  {id:'mapache',n:'Mapache',e:'🦝',l:'C2',d:['cangrejo','ostion']},
+  {id:'cocodrilo',n:'Cocodrilo de río',e:'🐊',l:'S',d:['robalo','mapache','lisa']},{id:'pescadora',n:'Águila pescadora',e:'🦅',l:'S',d:['robalo','lisa']}],
+ nota:{cangrejo:'Come hojas caídas del mangle y lodo con restos orgánicos.'},
+ cand:[
+  {id:'tilapia',n:'Tilapia',e:'🐟',l:'C1',tipo:'Especie invasora',d:['fito','ulva'],presion:.35,comp:['lisa','camaron'],c:.4,boost:1.5,presaDe:['garza','robalo'],
+   desc:'Se trajo de África para granjas de peces. Se escapa, se reproduce muy rápido y compite con los peces nativos.'},
+  {id:'diablo',n:'Pez diablo',e:'🐟',l:'C1',tipo:'Especie invasora',d:['ulva'],presion:.4,comp:['lisa','mangle'],c:.3,boost:1.7,
+   desc:'Viene de Sudamérica. Invadió ríos y lagunas del sureste; casi nadie se lo come y sus túneles dañan las orillas.'}]},
+{id:'rio',n:'Río y agua dulce',e:'🏞️',lugar:'Ríos y lagos del centro de México',
+ esp:[
+  {id:'algas',n:'Algas',e:'🟢',l:'P'},{id:'plantas',n:'Plantas acuáticas',e:'🌿',l:'P'},{id:'tule',n:'Tule',e:'🌾',l:'P'},
+  {id:'acocil',n:'Acocil',e:'🦐',l:'C1',d:['algas','plantas']},{id:'caracol',n:'Caracol',e:'🐌',l:'C1',d:['algas']},
+  {id:'larvas',n:'Larvas de insecto',e:'🪲',l:'C1',d:['algas']},{id:'pato',n:'Pato mexicano',e:'🦆',l:'C1',d:['plantas','tule']},
+  {id:'ajolote',n:'Ajolote',e:'🦎',l:'C2',d:['acocil','larvas','caracol']},{id:'charal',n:'Charal',e:'🐟',l:'C2',d:['larvas']},
+  {id:'culebra',n:'Culebra de agua',e:'🐍',l:'C2',d:['charal','ajolote']},
+  {id:'nutria',n:'Nutria de río',e:'🦦',l:'S',d:['acocil','charal','culebra']},{id:'garzam',n:'Garza morena',e:'🪶',l:'S',d:['charal','ajolote','pato']}],
+ cand:[
+  {id:'ranatoro',n:'Rana toro',e:'🐸',l:'C2',tipo:'Especie invasora',d:['ajolote','acocil','larvas'],presion:.5,boost:1.5,presaDe:['culebra'],
+   desc:'Viene del este de EE. UU. Es enorme, come ajolotes y ranas nativas y contagia un hongo mortal para los anfibios.'},
+  {id:'carpa',n:'Carpa común',e:'🐟',l:'C1',tipo:'Especie invasora',d:['plantas','larvas'],presion:.5,comp:['ajolote','charal'],c:.3,boost:1.5,presaDe:['nutria'],
+   desc:'Viene de Asia. Remueve el fondo, enturbia el agua, arranca plantas y se come los huevos de otras especies.'}]},
+{id:'oceano',n:'Océano abierto',e:'🌊',lugar:'Pacífico de Baja California',
+ esp:[
+  {id:'fito',n:'Fitoplancton',e:'🦠',l:'P'},{id:'kelp',n:'Kelp gigante',e:'🌿',l:'P'},
+  {id:'copepodo',n:'Copépodo',e:'🦐',l:'C1',d:['fito']},{id:'kril',n:'Kril',e:'🦐',l:'C1',d:['fito']},
+  {id:'sardina',n:'Sardina',e:'🐟',l:'C1',d:['fito','copepodo']},{id:'erizo',n:'Erizo morado',e:'🐾',l:'C1',d:['kelp']},
+  {id:'medusa',n:'Medusa',e:'🪼',l:'C2',d:['copepodo']},{id:'calamar',n:'Calamar de Humboldt',e:'🦑',l:'C2',d:['sardina']},
+  {id:'ballena',n:'Ballena azul',e:'🐋',l:'C2',d:['kril']},{id:'vieja',n:'Pez vieja',e:'🐟',l:'C2',d:['erizo']},
+  {id:'lobomarino',n:'Lobo marino',e:'🦭',l:'C2',d:['sardina','calamar']},
+  {id:'tiburon',n:'Tiburón blanco',e:'🦈',l:'S',d:['lobomarino','calamar']},{id:'orca',n:'Orca',e:'🐋',l:'S',d:['lobomarino','ballena','tiburon']}],
+ nota:{ballena:'Es el animal más grande del planeta y come kril diminuto: por eso es consumidora secundaria.',vieja:'Pez de los bosques de kelp que rompe erizos con sus dientes.'},
+ cand:[
+  {id:'nutriam',n:'Nutria marina',e:'🦦',l:'C2',tipo:'Reintroducción',d:['erizo'],presion:1.2,boost:1.4,presaDe:['orca'],
+   desc:'Vivía en Baja California y desapareció por la cacería para vender su piel. Come erizos y así protege los bosques de kelp.'},
+  {id:'pesca',n:'Pesca industrial',e:'🎣',l:'S',tipo:'Actividad humana',fijo:true,d:['sardina','calamar','tiburon'],presion:.55,
+   desc:'Los barcos industriales capturan toneladas de sardina y calamar, y muchos tiburones caen en sus redes.'}]},
+{id:'pastizal',n:'Pastizal',e:'🌾',lugar:'Pastizales de Janos, Chihuahua',
+ esp:[
+  {id:'pasto',n:'Pasto navajita',e:'🌾',l:'P'},{id:'hierbas',n:'Hierbas y flores',e:'🌼',l:'P'},{id:'mezquite',n:'Mezquite',e:'🌳',l:'P'},
+  {id:'perrito',n:'Perrito de la pradera',e:'🐿️',l:'C1',d:['pasto','hierbas']},{id:'bisonte',n:'Bisonte',e:'🦬',l:'C1',d:['pasto']},
+  {id:'chapulin',n:'Chapulín',e:'🦗',l:'C1',d:['pasto','hierbas']},{id:'liebre',n:'Liebre',e:'🐇',l:'C1',d:['pasto','hierbas']},
+  {id:'berrendo',n:'Berrendo',e:'🦌',l:'C1',d:['hierbas','mezquite']},
+  {id:'huron',n:'Hurón de patas negras',e:'🐾',l:'C2',d:['perrito']},{id:'tecolote',n:'Tecolote llanero',e:'🦉',l:'C2',d:['chapulin']},
+  {id:'serpiente',n:'Serpiente toro',e:'🐍',l:'C2',d:['perrito']},
+  {id:'aguila',n:'Águila real',e:'🦅',l:'S',d:['perrito','liebre']},{id:'coyote',n:'Coyote',e:'🐺',l:'S',d:['liebre','perrito','berrendo']}],
+ cand:[
+  {id:'ganado',n:'Ganado vacuno',e:'🐄',l:'C1',tipo:'Introducida por humanos',d:['pasto'],presion:.7,boost:1.5,
+   desc:'Demasiadas vacas en un mismo terreno acaban con el pasto y el pastizal se convierte en matorral.'},
+  {id:'lobo',n:'Lobo mexicano',e:'🐺',l:'S',tipo:'Reintroducción',d:['bisonte','berrendo','liebre'],presion:.35,comp:['coyote'],c:.35,boost:1,
+   desc:'Desapareció de la naturaleza en México. Hoy se reintroduce en el norte del país, donde compite con el coyote.'}]}
+];
+
+// ===== Motor de la red =====
+function crearRed(eco){
+  const nodos=eco.esp.map(s=>({...s,d:s.d||[],comp:s.comp||[],B:1,vivo:true,quitado:false,agregado:false,hist:[1]}));
+  return {eco,nodos,anio:0};
+}
+function porId(red,id){return red.nodos.find(n=>n.id===id)}
+function terminos(red,n){
+  // alimento
+  const comida=[],presion=[];
+  const nativosComen=n.agregado?n.d:n.d;
+  n.d.forEach(id=>{const p=porId(red,id);if(p)comida.push({n:p,w:1/n.d.length,base:!n.agregado})});
+  red.nodos.forEach(m=>{ if(m.agregado&&m.presaDe&&m.presaDe.includes(n.id)&&!n.agregado)comida.push({n:m,w:.3,base:false})});
+  // depredadores
+  const nat=red.nodos.filter(m=>!m.agregado&&!n.agregado&&m.d.includes(n.id));
+  nat.forEach(m=>presion.push({n:m,w:.5/nat.length,base:true,tipo:'caza'}));
+  red.nodos.forEach(m=>{ if(m.agregado&&m.d.includes(n.id))presion.push({n:m,w:m.presion||.4,base:false,tipo:'caza'})});
+  if(n.agregado&&n.presaDe)n.presaDe.forEach(id=>{const p=porId(red,id);if(p)presion.push({n:p,w:.3,base:false,tipo:'caza'})});
+  // competencia
+  n.comp.forEach(c=>{const p=porId(red,c.id);if(p)presion.push({n:p,w:c.c,base:true,tipo:'compite'})});
+  red.nodos.forEach(m=>{ if(m.agregado&&m.compite&&m.compite.includes(n.id))presion.push({n:m,w:m.c||.4,base:false,tipo:'compite'})});
+  return {comida,presion};
+}
+function evaluar(red,n){
+  const t=terminos(red,n);
+  let food;
+  if(n.l==='P'&&!n.d.length)food=1;
+  else{food=0;t.comida.forEach(x=>food+=x.w*x.n.B)}
+  let factor=1;t.presion.forEach(x=>factor+=x.base?x.w*(x.n.B-1):x.w*x.n.B);
+  return {food,factor,t};
+}
+function paso(red){
+  const objetivos=red.nodos.map(n=>{
+    if(!n.vivo)return 0; if(n.fijo)return 1;
+    const {food,factor}=evaluar(red,n);
+    return Math.min(3,Math.max(0,(n.boost||1)*food/Math.max(factor,.25)));
+  });
+  red.nodos.forEach((n,i)=>{
+    if(!n.vivo){n.B=0}else{n.B+=0.25*(objetivos[i]-n.B);if(n.B<0.05){n.B=0;n.vivo=false;n.extinto=true}}
+  });
+  red.anio++;red.nodos.forEach(n=>n.hist.push(n.vivo?n.B:0));
+}
+function quitar(red,id){const n=porId(red,id);n.B=0;n.vivo=false;n.quitado=true;n.hist[n.hist.length-1]=0}
+function devolver(red,id){const n=porId(red,id);n.B=.15;n.vivo=true;n.quitado=false;n.extinto=false;n.hist[n.hist.length-1]=.15}
+function agregar(red,c){
+  const n={...c,d:c.d||[],comp:[],compite:c.comp||[],agregado:true,B:c.fijo?1:.15,vivo:true,hist:new Array(red.anio).fill(null)};
+  n.hist.push(n.B);red.nodos.push(n);return n;
+}
+if(typeof module!=='undefined')module.exports={ECOS,crearRed,porId,evaluar,paso,quitar,devolver,agregar};
+
+</script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NIV={P:{n:'Productores',u:'Productor',c:'#2f8f4e',y:560},C1:{n:'Consumidores primarios',u:'Consumidor primario',c:'#c98a00',y:410},
+  C2:{n:'Consumidores secundarios',u:'Consumidor secundario',c:'#e4661a',y:255},S:{n:'Superdepredadores',u:'Superdepredador',c:'#c3241c',y:95}};
+const ORDEN={P:0,C1:1,C2:2,S:3};
+const ANIOS=30;
+
+let red=null, sel=null, fase='libre', accion=null, antes=null, predic={}, animando=false, posiciones={};
+
+/* ---------- Ecosistemas ---------- */
+function pintarEcos(){
+  $('#ecos').innerHTML=ECOS.map(e=>`<button data-eco="${e.id}" aria-pressed="${red&&red.eco.id===e.id}">${e.e} ${esc(e.n)}</button>`).join('');
+}
+$('#ecos').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b||animando)return;cargar(b.dataset.eco)});
+function cargar(id){
+  red=crearRed(ECOS.find(e=>e.id===id));sel=null;fase='libre';accion=null;antes=null;predic={};
+  $('#lugar').textContent=red.eco.lugar;
+  pintarEcos();calcularPosiciones();pintarTodo();
+}
+
+/* ---------- Disposición ---------- */
+function calcularPosiciones(){
+  posiciones={};const X0=190,X1=980;
+  ['P','C1','C2','S'].forEach(l=>{
+    let fila=red.nodos.filter(n=>n.l===l);
+    if(l!=='P'){fila=fila.map(n=>{const xs=n.d.map(id=>posiciones[id]&&posiciones[id].x).filter(x=>x!=null);
+      return {n,k:xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:500}}).sort((a,b)=>a.k-b.k).map(o=>o.n)}
+    const paso=(X1-X0)/fila.length;
+    fila.forEach((n,i)=>posiciones[n.id]={x:X0+paso*(i+.5),y:NIV[l].y});
+  });
+}
+const radio=n=>n.vivo?20+18*Math.sqrt(Math.min(n.B,3)):22;
+function partir(t){const p=t.split(' ');if(t.length<13||p.length<2)return [t];
+  let best=1,diff=1e9;for(let i=1;i<p.length;i++){const a=p.slice(0,i).join(' ').length,b=p.slice(i).join(' ').length;if(Math.abs(a-b)<diff){diff=Math.abs(a-b);best=i}}
+  return [p.slice(0,best).join(' '),p.slice(best).join(' ')]}
+
+/* ---------- Dibujo de la red ---------- */
+function pintarRed(){
+  const s=[];
+  // franjas de niveles
+  ['S','C2','C1','P'].forEach(l=>{const y=NIV[l].y;
+    s.push(`<rect x="0" y="${y-72}" width="1000" height="144" fill="${NIV[l].c}" opacity=".07"/>`);
+    s.push(`<text x="14" y="${y-4}" font-family="Alfa Slab One, Georgia, serif" font-size="15" fill="${NIV[l].c}">${partir(NIV[l].n).map((t,i)=>`<tspan x="14" dy="${i?18:0}">${esc(t)}</tspan>`).join('')}</text>`)});
+  s.push(`<text x="590" y="648" text-anchor="middle" font-size="15" fill="#8a6b00" font-weight="700">☀️ La energía entra a la red por la luz del Sol ☀️</text>`);
+  s.push(`<defs>${['#6b6b6b','#e4661a','#2b2b2b'].map((c,i)=>`<marker id="fl${i}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="${c}"/></marker>`).join('')}</defs>`);
+  // aristas
+  const enfocadas=new Set();
+  red.nodos.forEach(n=>{
+    n.d.forEach(id=>{const p=porId(red,id);if(!p)return;
+      const a=posiciones[p.id],b=posiciones[n.id];
+      const vivo=n.vivo&&p.vivo, foco=sel&&(sel===n.id||sel===p.id);
+      const rb=radio(n)+4, ra=radio(p)+2;
+      const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
+      const x1=a.x+dx/L*ra,y1=a.y+dy/L*ra,x2=b.x-dx/L*rb,y2=b.y-dy/L*rb;
+      const col=n.agregado?'#e4661a':(foco?'#2b2b2b':'#6b6b6b'),mk=n.agregado?1:(foco?2:0);
+      s.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${foco?3:1.6}" opacity="${vivo?(sel&&!foco?.18:.75):.12}" marker-end="url(#fl${mk})"/>`)});
+    const comps=[...(n.comp||[]).map(c=>c.id),...(n.compite||[])];
+    comps.forEach(id=>{const p=porId(red,id);if(!p)return;const a=posiciones[p.id],b=posiciones[n.id];
+      const foco=sel&&(sel===n.id||sel===p.id);const vivo=n.vivo&&p.vivo;
+      const mx=(a.x+b.x)/2,my=Math.min(a.y,b.y)-40;
+      s.push(`<path d="M${a.x} ${a.y} Q${mx} ${my} ${b.x} ${b.y}" fill="none" stroke="#c3241c" stroke-width="${foco?3:2}" stroke-dasharray="6 4" opacity="${vivo?(sel&&!foco?.2:.8):.12}"/>`)});
+  });
+  // nodos
+  red.nodos.forEach(n=>{const p=posiciones[n.id],r=radio(n),c=NIV[n.l].c;
+    const base=antes?antes[n.id]:1;
+    const pct=(n.vivo&&base>0)?Math.round((n.B/base-1)*100):null;
+    const lineas=partir(n.n);
+    const atenuado=sel&&sel!==n.id&&!vecinos(sel).has(n.id);
+    s.push(`<g class="nodo" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.n)}" opacity="${atenuado?.45:1}" style="transition:opacity .2s">`);
+    if(n.agregado)s.push(`<circle cx="${p.x}" cy="${p.y}" r="${r+7}" fill="none" stroke="#e4661a" stroke-width="3" stroke-dasharray="5 4"/>`);
+    s.push(`<circle class="aro" cx="${p.x}" cy="${p.y}" r="${r}" fill="${n.vivo?'#fff':'#ddd'}" stroke="${n.vivo?c:'#888'}" stroke-width="${sel===n.id?6:4}" ${n.vivo?'':'stroke-dasharray="5 4"'}/>`);
+    s.push(`<text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-size="${n.vivo?28:24}" opacity="${n.vivo?1:.35}">${n.e}</text>`);
+    if(!n.vivo)s.push(`<text x="${p.x}" y="${p.y+12}" text-anchor="middle" font-size="34" fill="#c3241c" font-weight="700">✕</text>`);
+    lineas.forEach((t,i)=>s.push(`<text x="${p.x}" y="${p.y+r+17+i*15}" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1c1a17">${esc(t)}</text>`));
+    let etiqueta='';
+    if(!n.vivo)etiqueta=n.quitado?'quitado':'extinto';
+    else if(fase!=='libre'&&pct!==null&&Math.abs(pct)>=5)etiqueta=(pct>0?'+':'')+pct+'%';
+    if(etiqueta){const col=!n.vivo?'#c3241c':pct>0?'#2f8f4e':'#e4661a';const w=etiqueta.length*8+14;
+      s.push(`<rect x="${p.x-w/2}" y="${p.y-r-22}" width="${w}" height="19" rx="9" fill="${col}"/><text x="${p.x}" y="${p.y-r-8}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">${etiqueta}</text>`)}
+    s.push('</g>')});
+  $('#red').innerHTML=s.join('');
+}
+function vecinos(id){const v=new Set();const n=porId(red,id);if(!n)return v;
+  n.d.forEach(x=>v.add(x));(n.comp||[]).forEach(c=>v.add(c.id));(n.compite||[]).forEach(x=>v.add(x));
+  red.nodos.forEach(m=>{if(m.d.includes(id)||(m.comp||[]).some(c=>c.id===id)||(m.compite||[]).includes(id))v.add(m.id)});return v}
+$('#red').addEventListener('click',e=>{const g=e.target.closest('.nodo');if(!g)return;sel=sel===g.dataset.id?null:g.dataset.id;pintarTodo();
+  if(sel&&fase==='libre'&&window.innerWidth<1000)$('#caja-ficha').scrollIntoView({behavior:'smooth',block:'start'})});
+$('#red').addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const g=e.target.closest('.nodo');if(!g)return;e.preventDefault();sel=g.dataset.id;pintarTodo();
+  const f=document.querySelector(`.nodo[data-id="${sel}"]`);if(f)f.focus()});
+
+/* ---------- Ficha ---------- */
+function nombres(ids){return ids.map(id=>porId(red,id)).filter(Boolean).map(n=>n.e+' '+esc(n.n)).join(', ')}
+function pintarFicha(){
+  const caja=$('#caja-ficha');
+  if(!sel){caja.innerHTML=`<h3>Toca un ser vivo</h3><p class="muted" style="margin:0">Verás qué come, quién se lo come y podrás quitarlo de la red.</p>`;return}
+  const n=porId(red,sel);const comen=red.nodos.filter(m=>m.d.includes(n.id)).map(m=>m.id);
+  const compite=[...(n.comp||[]).map(c=>c.id),...(n.compite||[]),...red.nodos.filter(m=>(m.comp||[]).some(c=>c.id===n.id)||(m.compite||[]).includes(n.id)).map(m=>m.id)];
+  const nota=(red.eco.nota||{})[n.id]||(n.agregado?n.desc:'');
+  const base=antes?antes[n.id]:1;
+  let estado=n.vivo?`Población: ${Math.round(n.B*100)}% de la inicial`:(n.quitado?'Quitado de la red':'Extinto en este ecosistema');
+  let btn='';
+  if(fase==='libre'){
+    if(n.vivo&&!n.fijo)btn=`<button class="btn rosa chico" data-acc="quitar">Quitar de la red</button>`;
+    else if(n.vivo&&n.fijo)btn=`<button class="btn sec chico" data-acc="retirar">Retirar de la red</button>`;
+    else btn=`<button class="btn chico" data-acc="devolver">Devolverlo a la red</button>`;
+  }
+  caja.innerHTML=`<div class="ficha-cab"><span class="emo">${n.e}</span><div><h3 style="margin:0">${esc(n.n)}</h3>
+    <span class="etq" style="background:${NIV[n.l].c}">${NIV[n.l].u}</span>${n.agregado?` <span class="tipo">${esc(n.tipo)}</span>`:''}</div></div>
+    <p class="muted" style="margin:0 0 6px">${estado}</p>
+    ${n.d.length?`<p class="lista-rel"><b>Come:</b> ${nombres(n.d)}</p>`:`<p class="lista-rel"><b>Come:</b> fabrica su alimento con la luz del Sol</p>`}
+    <p class="lista-rel"><b>Se lo comen:</b> ${comen.length?nombres(comen):(n.presaDe?nombres(n.presaDe):'nadie en esta red')}</p>
+    ${compite.length?`<p class="lista-rel"><b>Compite con:</b> ${nombres([...new Set(compite)])}</p>`:''}
+    ${nota?`<p style="font-size:.9rem;margin:8px 0">${esc(nota)}</p>`:''}
+    <div class="acciones" style="margin-top:8px">${btn}</div>`;
+}
+$('#caja-ficha').addEventListener('click',e=>{const b=e.target.closest('[data-acc]');if(!b)return;
+  const n=porId(red,sel);
+  if(b.dataset.acc==='quitar')iniciarAccion({tipo:'quitar',id:n.id});
+  else if(b.dataset.acc==='devolver')iniciarAccion({tipo:'devolver',id:n.id});
+  else if(b.dataset.acc==='retirar')iniciarAccion({tipo:'quitar',id:n.id});
+});
+
+/* ---------- Agregar ---------- */
+function pintarAgregar(){
+  const caja=$('#caja-agregar');
+  const disp=red.eco.cand.filter(c=>!porId(red,c.id));
+  caja.innerHTML=`<h3>Agregar a la red</h3>`+(disp.length?disp.map(c=>`<div class="cand"><div class="top"><span class="nom">${c.e} ${esc(c.n)}</span><span class="tipo">${esc(c.tipo)}</span></div>
+     <p>${esc(c.desc)}</p><button class="btn chico" data-cand="${c.id}" ${fase!=='libre'?'disabled':''}>Agregar</button></div>`).join('')
+     :`<p class="muted" style="margin:0">Ya agregaste todo lo disponible en este ecosistema. Toca «Reiniciar red» para empezar de nuevo.</p>`);
+}
+$('#caja-agregar').addEventListener('click',e=>{const b=e.target.closest('[data-cand]');if(!b||fase!=='libre')return;
+  iniciarAccion({tipo:'agregar',id:b.dataset.cand})});
+
+/* ---------- Flujo: acción → predicción → simulación → resultados ---------- */
+function iniciarAccion(a){
+  antes={};red.nodos.forEach(n=>antes[n.id]=n.vivo?n.B:0);
+  antes.__eval={};red.nodos.forEach(n=>antes.__eval[n.id]=evaluar(red,n));
+  accion=a;
+  if(a.tipo==='quitar')quitar(red,a.id);
+  else if(a.tipo==='devolver')devolver(red,a.id);
+  else{const c=red.eco.cand.find(x=>x.id===a.id);agregar(red,c);antes[c.id]=0;calcularPosiciones()}
+  accion.nodo=porId(red,a.id);
+  sel=a.id;fase='prediccion';predic={};accion.lista=candidatosPrediccion().map(n=>n.id);
+  pintarTodo();
+}
+function candidatosPrediccion(){
+  const a=accion.nodo;const v=[...vecinos(a.id)].map(id=>porId(red,id)).filter(n=>n&&n.vivo&&!n.fijo);
+  const set=new Set(v.map(n=>n.id));
+  // un efecto indirecto (a dos pasos) para pensar en cascada
+  const dos=[];v.forEach(n=>vecinos(n.id).forEach(id=>{const m=porId(red,id);if(m&&m.vivo&&!m.fijo&&!set.has(id)&&id!==a.id)dos.push(m)}));
+  const lista=v.slice(0,5);if(dos.length)lista.push(dos[Math.floor(Math.random()*dos.length)]);
+  return lista;
+}
+function verbo(){const n=accion.nodo;return accion.tipo==='quitar'?(n.fijo?`Retiraste: ${n.e} ${esc(n.n)}`:`Quitaste: ${n.e} ${esc(n.n)}`):accion.tipo==='devolver'?`Devolviste: ${n.e} ${esc(n.n)}`:`Agregaste: ${n.e} ${esc(n.n)}`}
+function pintarFlujo(){
+  const caja=$('#caja-flujo');
+  if(fase==='libre'){
+    caja.innerHTML=`<h3>¿Qué harás?</h3><p class="muted">Quita un ser vivo de la red o agrega uno nuevo. Antes de simular, podrás predecir qué pasará.</p>
+      <div class="acciones"><button class="btn sec chico" id="b-reiniciar">Reiniciar red</button></div>`;return}
+  if(fase==='prediccion'){
+    const lista=accion.lista.map(id=>porId(red,id));
+    caja.innerHTML=`<h3>${verbo()}</h3><p class="muted">¿Qué crees que pasará con estas poblaciones en 30 años?</p>
+      ${lista.map(n=>`<div class="pred"><span class="quien">${n.e} ${esc(n.n)}</span><span class="trio" data-p="${n.id}">
+        <button data-v="baja" aria-pressed="${predic[n.id]==='baja'}" aria-label="Baja">▼</button><button data-v="igual" aria-pressed="${predic[n.id]==='igual'}" aria-label="Igual">=</button><button data-v="sube" aria-pressed="${predic[n.id]==='sube'}" aria-label="Sube">▲</button></span></div>`).join('')}
+      <div class="acciones" style="margin-top:12px"><button class="btn" id="b-simular">Simular ${ANIOS} años</button><button class="btn sec chico" id="b-deshacer">Deshacer</button></div>`;
+    return}
+  if(fase==='simulando'){caja.innerHTML=`<h3>${verbo()}</h3><p>Simulando… año ${red.anio}</p>`;return}
+  if(fase==='resultado')caja.innerHTML=resultados();
+}
+$('#caja-flujo').addEventListener('click',e=>{
+  const t=e.target.closest('.trio button');
+  if(t){const id=t.parentElement.dataset.p;predic[id]=t.dataset.v;t.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===t));return}
+  if(e.target.closest('#b-simular'))simular();
+  if(e.target.closest('#b-deshacer'))deshacer();
+  if(e.target.closest('#b-reiniciar'))cargar(red.eco.id);
+  if(e.target.closest('#b-seguir')){fase='libre';antes=null;pintarTodo()}
+});
+function deshacer(){
+  const a=accion;
+  if(a.tipo==='agregar'){red.nodos=red.nodos.filter(n=>n.id!==a.id);calcularPosiciones();sel=null}
+  else{const n=accion.nodo;const b=antes[n.id];n.B=b;n.vivo=b>0;n.quitado=a.tipo==='devolver'&&!n.extinto;n.hist[n.hist.length-1]=b}
+  fase='libre';antes=null;accion=null;pintarTodo();
+}
+function simular(){
+  fase='simulando';animando=true;pintarTodo();
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let k=0;
+  const tic=()=>{paso(red);k++;pintarRed();pintarGrafica();$('#anio').textContent='Año '+red.anio;
+    const f=$('#caja-flujo p');if(f)f.textContent='Simulando… año '+red.anio;
+    if(k<ANIOS)setTimeout(tic,reduce?0:90);else{animando=false;fase='resultado';pintarTodo()}};
+  tic();
+}
+
+/* ---------- Explicaciones ---------- */
+function categoria(n){const b=antes[n.id];if(!n.vivo)return b>0?'baja':'igual';if(b===0)return 'sube';const r=n.B/b-1;return r>.1?'sube':r<-.1?'baja':'igual'}
+function porque(n){return causa(n).txt}
+function causa(n){
+  const pre=antes.__eval[n.id],pos=evaluar(red,n);
+  if(!pre)return {txt:'',id:null};
+  const rel=x=>x.n.B-(antes[x.n.id]??0);
+  if(!n.vivo){
+    if(pos.food<.15&&n.d.length){const muertas=pos.t.comida.filter(x=>!x.n.vivo);
+      return {txt:'se quedó sin alimento'+(muertas.length?': ya no hay '+muertas.map(x=>x.n.n).join(', '):'')+'.',id:muertas[0]?muertas[0].n.id:null}}
+    const peor=pos.t.presion.slice().sort((a,b)=>b.w*rel(b)-a.w*rel(a))[0];
+    return peor?{txt:`no resistió la presión de ${peor.n.n}.`,id:peor.n.id}:{txt:'su población cayó demasiado.',id:null}}
+  const dF=Math.log(Math.max(pos.food,.01)/Math.max(pre.food,.01)), dT=-Math.log(Math.max(pos.factor,.25)/Math.max(pre.factor,.25));
+  if(Math.abs(dF)>=Math.abs(dT)&&pos.t.comida.length){
+    const sube=dF>0;const x=pos.t.comida.slice().sort((a,b)=>sube?b.w*rel(b)-a.w*rel(a):a.w*rel(a)-b.w*rel(b))[0];
+    if(!x)return {txt:'',id:null};
+    if(!x.n.vivo&&antes[x.n.id]>0)return {txt:`desapareció ${x.n.n}, que era parte de su alimento.`,id:x.n.id};
+    if(antes[x.n.id]===0)return {txt:`ahora puede comer ${x.n.n}.`,id:x.n.id};
+    return {txt:sube?`aumentó su alimento: ${x.n.n}.`:`disminuyó su alimento: ${x.n.n}.`,id:x.n.id}}
+  const sube=dT>0;const x=pos.t.presion.slice().sort((a,b)=>sube?a.w*rel(a)-b.w*rel(b):b.w*rel(b)-a.w*rel(a))[0];
+  if(!x)return {txt:'',id:null};
+  const caza=x.tipo==='caza';const dep=n.l==='P'?'herbívoro':'depredador';
+  if(!x.n.vivo&&antes[x.n.id]>0)return {txt:caza?`ya no está ${x.n.n}, que se lo comía.`:`ya no compite con ${x.n.n}.`,id:x.n.id};
+  if(antes[x.n.id]===0)return {txt:caza?`ahora ${x.n.n} se lo come.`:`ahora ${x.n.n} compite con él por espacio y recursos.`,id:x.n.id};
+  if(n.l==='P'&&caza)return {txt:sube?`disminuyó un herbívoro que se lo come: ${x.n.n}.`:`aumentó un herbívoro que se lo come: ${x.n.n}.`,id:x.n.id};
+  if(sube)return {txt:caza?`disminuyó su ${dep}: ${x.n.n}.`:`disminuyó su competidor: ${x.n.n}.`,id:x.n.id};
+  return {txt:caza?`aumentó su ${dep}: ${x.n.n}.`:`aumentó su competidor: ${x.n.n}, que le gana espacio y recursos.`,id:x.n.id};
+}
+function flecha(n){if(n.id===accion.id)return accion.tipo==='quitar'?'✕':'＋';const r=cambio(n);if(!n.vivo)return '✕';return r>.02?'▲':r<-.02?'▼':'='}
+function cambio(n){const b=antes[n.id];if(b===undefined)return 0;return b>0?(n.vivo?n.B/b-1:-1):0}
+function cadena(n){
+  const seq=[n.id];let cur=n;
+  for(let i=0;i<6;i++){const c=causa(cur).id;if(!c||seq.includes(c))break;seq.unshift(c);if(c===accion.id)break;cur=porId(red,c);if(!cur)break}
+  if(seq[0]!==accion.id||seq.length<3)return '';
+  return '<div class="cadena">Cadena: '+seq.map(id=>{const m=porId(red,id);return `<span>${m.e} ${esc(m.n)} ${flecha(m)}</span>`}).join(' → ')+'</div>';
+}
+function relacion(n){
+  const a=accion.nodo;
+  if(a.d.includes(n.id))return 'depredador';
+  if(n.d.includes(a.id))return 'alimento';
+  if((a.compite||[]).includes(n.id)||(n.comp||[]).some(c=>c.id===a.id)||(a.comp||[]).some(c=>c.id===n.id))return 'competidor';
+  if(a.presaDe&&a.presaDe.includes(n.id))return 'alimento';
+  return 'indirecto';
+}
+const yLista=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];
+function amortiguado(n){
+  const a=accion.nodo,rel=relacion(n);
+  if(rel==='alimento'){const otros=n.d.filter(id=>id!==a.id).map(id=>porId(red,id)).filter(m=>m&&m.vivo);
+    return otros.length?`No dependía solo de ${a.n}: también come ${yLista(otros.map(m=>m.n))}.`:`${a.n} era solo una parte pequeña de lo que necesita.`}
+  if(rel==='depredador'){const otros=red.nodos.filter(m=>m.id!==a.id&&m.vivo&&m.d.includes(n.id));
+    return otros.length?`Además de ${a.n}, también se lo ${otros.length>1?'comen':'come'} ${yLista(otros.map(m=>m.n))}, así que su población siguió controlada.`:`La falta de alimento frenó su crecimiento.`}
+  if(rel==='competidor')return `La competencia con ${a.n} era débil comparada con otros factores.`;
+  return `No está conectado directamente con ${a.n}; el efecto se fue diluyendo al pasar por la red.`;
+}
+function clave(n){
+  const a=accion.nodo,rel=relacion(n),quita=accion.tipo==='quitar';
+  if(rel==='depredador')return quita?`${a.n} se lo comía. Al quitar a un depredador, la presión sobre sus presas baja y suelen aumentar.`:`${a.n} se lo come. Al llegar un depredador nuevo, sus presas suelen disminuir.`;
+  if(rel==='alimento')return quita?`${a.n} era parte de su alimento. Cuando falta comida, la población baja, a menos que tenga otras opciones.`:`${a.n} es comida nueva para él. Más alimento suele permitir que la población crezca.`;
+  if(rel==='competidor')return quita?`Competía con ${a.n}. Sin competidor queda más espacio y recursos.`:`${a.n} le compite por espacio y recursos, y eso lo perjudica.`;
+  return `No hay conexión directa: el cambio llegó por otro camino. Sigue la cadena para ver por dónde viajó.`;
+}
+function resumen(){
+  const a=accion.nodo,l=ORDEN[a.l];
+  if(accion.tipo==='quitar'){
+    if(a.fijo)return 'Al retirar la actividad humana, las poblaciones que estaban siendo explotadas pueden recuperarse, y eso se transmite al resto de la red.';
+    if(l>=2)return `Quitaste a un depredador. Sus presas quedan con menos control y aumentan; luego comen más de lo que hay debajo de ellas. Este efecto que baja de nivel en nivel se llama <b>cascada trófica</b> (control «de arriba hacia abajo»).`;
+    if(l===0)return `Quitaste a un productor, la entrada de energía a la red. La falta de alimento sube de nivel en nivel: primero lo resienten los herbívoros que lo comían y después sus depredadores (control «de abajo hacia arriba»).`;
+    return `Quitaste a un consumidor primario: hacia abajo, las plantas que comía quedan con menos presión; hacia arriba, sus depredadores pierden alimento. El efecto viaja en las dos direcciones.`}
+  if(accion.tipo==='devolver')return `Devolviste a ${esc(a.n)} a la red. Al recuperar su lugar, vuelve a comer y a ser comido, y la red tiende a acercarse a como estaba antes.`;
+  if(a.fijo)return 'Los humanos actuamos como un superdepredador muy eficiente: retiramos individuos sin que nuestra población dependa de ellos, así que la presión no baja aunque las presas escaseen.';
+  if(a.l==='P')return `Agregaste una planta que compite con las nativas por espacio, luz y agua. Si gana la competencia, los herbívoros que dependían de las plantas nativas pierden alimento.`;
+  return `Agregaste a ${esc(a.n)}. ${a.tipo==='Reintroducción'?'Al regresar, vuelve a cumplir su papel en la red y puede restaurar equilibrios que se habían perdido.':'Una especie que llega de fuera suele tener pocos depredadores, así que puede crecer mucho y afectar a sus presas y competidores.'}`;
+}
+const flechaPred={sube:'▲ sube',baja:'▼ baja',igual:'= igual'};
+function resultados(){
+  const a=accion.nodo;const la=ORDEN[a.l];
+  let html=`<h3>${verbo()}</h3><p class="muted">Después de ${ANIOS} años:</p>`;
+  if(accion.tipo==='agregar'||accion.tipo==='devolver'){const r=a.vivo?Math.round(a.B*100):0;
+    html+=`<p><b>${a.e} ${esc(a.n)}</b> ${a.vivo?(a.fijo?'sigue presionando a la red.':`se estableció con ${r}% de una población típica.`):'no logró establecerse.'}</p>`}
+  html+=`<div class="explica"><b>¿Qué pasó?</b> ${resumen()}</div>`;
+
+  // Revisión de predicciones
+  const ids=Object.keys(predic);
+  if(ids.length){
+    const bien=ids.filter(id=>predic[id]===categoria(porId(red,id))).length;
+    html+=`<div class="res-grupo"><h4>Tus predicciones: ${bien} de ${ids.length} correctas</h4>`+ids.map(id=>{
+      const n=porId(red,id),real=categoria(n),ok=predic[id]===real,r=cambio(n);
+      const txt=!n.vivo?'se extinguió':Math.abs(r)<.005?'sin cambio':(r>0?'+':'')+Math.round(r*100)+'%';
+      let exp;
+      if(real==='igual'&&n.vivo)exp=(Math.abs(r)>=.02?cap(porque(n))+' Pero el cambio fue pequeño: ':'')+(Math.abs(r)>=.02?(s=>s.charAt(0).toLowerCase()+s.slice(1))(amortiguado(n)):amortiguado(n));
+      else exp=cap(porque(n));
+      return `<div class="res ${ok?'sube':'ext'}"><b>${n.e} ${esc(n.n)}</b><br>
+        Predijiste <b>${flechaPred[predic[id]]}</b> · Resultado <b>${flechaPred[real]}</b> (${txt}) <span class="marca ${ok?'ok':'mal'}">${ok?'✔':'✘'}</span><br>
+        ${esc(exp)}${cadena(n)}${ok?'':`<div class="clave">💡 ${esc(clave(n))}</div>`}</div>`}).join('')+`</div>`;
+  }
+
+  // Todos los seres vivos que cambiaron
+  const todos=red.nodos.filter(n=>n.id!==a.id&&antes[n.id]!==undefined&&antes[n.id]>0&&!n.fijo).map(n=>({n,r:cambio(n)}));
+  const cambiaron=todos.filter(o=>!o.n.vivo||Math.abs(o.r)>=.02);
+  const fila=o=>{const cls=!o.n.vivo?'ext':o.r>0?'sube':'baja';
+    const cifra=!o.n.vivo?'se extinguió':(o.r>0?'▲ +':'▼ ')+Math.round(o.r*100)+'%';
+    const peq=o.n.vivo&&Math.abs(o.r)<.1?' <span class="muted">(cambio pequeño)</span>':'';
+    return `<div class="res ${cls}"><b>${o.n.e} ${esc(o.n.n)}</b> <span class="cifra">${cifra}</span>${peq}<br>${esc(cap(porque(o.n)))}${cadena(o.n)}</div>`};
+  html+=`<h3 style="margin-top:14px">Todos los cambios en la red</h3>`;
+  if(!cambiaron.length)html+=`<p>La red casi no cambió: los demás seres vivos encontraron otras fuentes de alimento. Las redes con muchas conexiones resisten mejor.</p>`;
+  [['Hacia arriba (niveles superiores)',o=>ORDEN[o.n.l]>la],['En su mismo nivel',o=>ORDEN[o.n.l]===la],['Hacia abajo (niveles inferiores)',o=>ORDEN[o.n.l]<la]].forEach(([t,f])=>{
+    const g=cambiaron.filter(f).sort((x,y)=>Math.abs(y.r)-Math.abs(x.r));if(g.length)html+=`<div class="res-grupo"><h4>${t}</h4>${g.map(fila).join('')}</div>`});
+  const quietos=todos.filter(o=>o.n.vivo&&Math.abs(o.r)<.02&&relacion(o.n)!=='indirecto');
+  if(quietos.length)html+=`<div class="res-grupo"><h4>Conectados, pero casi sin cambio</h4>${quietos.map(o=>`<div class="res"><b>${o.n.e} ${esc(o.n.n)}</b><br>${esc(amortiguado(o.n))}</div>`).join('')}</div>`;
+  const ext=cambiaron.filter(o=>!o.n.vivo).length;
+  if(ext)html+=`<p>⚠️ ${ext===1?'Una especie se extinguió':ext+' especies se extinguieron'} por este cambio. Así funciona el efecto dominó.</p>`;
+  html+=`<div class="acciones"><button class="btn" id="b-seguir">Hacer otro cambio</button><button class="btn sec chico" id="b-reiniciar">Reiniciar red</button></div>`;
+  return html;
+}
+
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+
+/* ---------- Gráfica ---------- */
+function pintarGrafica(){
+  const cv=$('#graf'),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;
+  cv.width=W*dpr;cv.height=H*dpr;const g=cv.getContext('2d');g.scale(dpr,dpr);g.clearRect(0,0,W,H);
+  const L=44,R=10,T=10,B=26,maxY=2.5,n=Math.max(red.anio,10);
+  const X=i=>L+(W-L-R)*i/n, Y=v=>T+(H-T-B)*(1-Math.min(v,maxY)/maxY);
+  g.font='12px Atkinson Hyperlegible, system-ui, sans-serif';g.fillStyle='#1c1a17';g.strokeStyle='rgba(0,0,0,.12)';g.lineWidth=1;
+  [0,.5,1,1.5,2,2.5].forEach(v=>{g.beginPath();g.moveTo(L,Y(v));g.lineTo(W-R,Y(v));g.stroke();g.fillText(Math.round(v*100)+'%',4,Y(v)+4)});
+  g.strokeStyle='rgba(0,0,0,.45)';g.setLineDash([4,4]);g.beginPath();g.moveTo(L,Y(1));g.lineTo(W-R,Y(1));g.stroke();g.setLineDash([]);
+  const pasoX=n<=30?5:10;for(let i=0;i<=n;i+=pasoX)g.fillText(i,X(i)-4,H-8);
+  const orden=red.nodos.slice().sort((a,b)=>(a.id===sel)-(b.id===sel));
+  orden.forEach(nd=>{if(nd.fijo)return;const foco=nd.id===sel;
+    g.strokeStyle=NIV[nd.l].c;g.globalAlpha=sel&&!foco?.18:.85;g.lineWidth=foco?3.5:1.6;g.beginPath();let ini=false;
+    nd.hist.forEach((v,i)=>{if(v==null)return;if(!ini){g.moveTo(X(i),Y(v));ini=true}else g.lineTo(X(i),Y(v))});g.stroke()});
+  g.globalAlpha=1;
+  const s=sel&&porId(red,sel);$('#graf-nota').textContent=s?`Resaltado: ${s.n}`:'100% = población inicial. Toca un ser vivo para resaltarlo.';
+}
+
+/* ---------- Todo ---------- */
+function pintarTodo(){
+  $('#anio').textContent='Año '+red.anio;
+  pintarRed();pintarFicha();pintarFlujo();pintarAgregar();pintarGrafica();
+}
+window.addEventListener('resize',()=>red&&pintarGrafica());
+cargar('selva');
+})();
+</script>
+</body>
+</html>
